@@ -1,0 +1,8 @@
+# {prefix}/{name}{profileSeparator}{profile}/properties.key
+
+aws:
+  paramstore:
+    prefix: /spring-boot-aws
+    enabled: true
+    name: cloud-parameter-store
+    profileSeparator: _

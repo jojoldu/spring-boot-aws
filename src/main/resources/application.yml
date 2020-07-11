@@ -1,1 +1,32 @@
+spring:
+  profiles:
+    active: local
 
+cloud.aws:
+  region.static: ap-northeast-2
+  stack.auto: true
+
+---
+spring:
+  profiles: local
+  h2:
+    console.settings.trace: false
+    console:
+      enabled: true
+  datasource:
+    hikari:
+      jdbc-url: jdbc:h2:mem://localhost/~/jojoldu;MODE=MYSQL # MODE=MYSQL 없으면 h2가 mysql 모드로 실행이 안됨
+      username: sa
+      password:
+      driver-class-name: org.h2.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: update
+
+
+cloud.aws:
+  stack.auto: false
+---
+spring:
+  profiles: real

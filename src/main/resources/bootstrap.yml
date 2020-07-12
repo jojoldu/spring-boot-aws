@@ -1,8 +1,20 @@
 # {prefix}/{name}{profileSeparator}{profile}/properties.key
 
+spring:
+  profiles:
+    active: local
+
 aws:
   paramstore:
     prefix: /spring-boot-aws
     enabled: true
     name: cloud-parameter-store
     profileSeparator: _
+
+---
+spring:
+  profiles: local
+
+---
+spring:
+  profiles: real

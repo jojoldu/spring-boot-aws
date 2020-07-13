@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @NoArgsConstructor
 @Configuration
 public class ParameterStoreProperties {
-    @Value("encrypt.key")
+
+    @Value("${encrypt.key}")
     private String encryptKey;
 }

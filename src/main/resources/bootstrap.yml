@@ -1,4 +1,4 @@
-# {prefix}/{name}{profileSeparator}{profile}/properties.key
+# {prefix}/{name}{profileSeparator}{profile}/parameter.key
 
 aws:
   paramstore:

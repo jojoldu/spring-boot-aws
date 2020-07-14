@@ -32,12 +32,144 @@ AWS의 파라미터 스토어는 AWS에서 원격 설정값을 제공하는 서�
 
 > 모든 코드는 [Github](https://github.com/jojoldu/spring-boot-aws)에 있습니다.
 
-## 
-
+AWS 파라미터 스터오는 **표준 파라미터, Limit 해제를 하지 않는 상태** 라면 무료로 사용 가능합니다.
 
 ![price](./images/price.png)
 
-[요금표](https://aws.amazon.com/ko/systems-manager/pricing/)
+* [요금표](https://aws.amazon.com/ko/systems-manager/pricing/)
+
+그래서 실제로 Spring Boot 배포시에만 적용된다면 비용 관계 없이 편하게 이용하실 수 있으실것 같습니다.  
+  
+자 그럼 실제 프로젝트에 한번 적용해보겠습니다.
+
+## 1. 예제
+
+### 1-1. 프로젝트 설정
+
+기존의 Spring Cloud 프로젝트에 다음의 의존성을 추가합니다.
+
+```groovy
+dependencies {
+    ...
+    implementation 'org.springframework.cloud:spring-cloud-starter-aws-parameter-store-config'
+}
+```
+
+
+만약 Spring Cloud Dependency가 없다면 아래와 같이 추가해줍니다.
+
+```groovy
+ext {
+    set('springCloudVersion', "Hoxton.SR6")
+}
+
+...
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+```
+
+* springCloudVersion 버전은 본인 프로젝트의 Spring Boot 버전에 맞춰 설정하시면 됩니다.
+
+추가 되셨다면 ```src/main/resourece``` 아래에 ```bootstrap.yml``` 파일을 생성하여 추가합니다.  
+spring-cloud-starter-aws-parameter-store-config 에서의 설정 값은 기존의 다른 설정들처럼 ```application.yml```을 사용하지 않고, ```bootstrap.yml``` 을 사용합니다.  
+
+![bootstrap](./images/bootstrap.png)
+
+설정은 아래와 같습니다.
+
+```yml
+aws:
+  paramstore:
+    enabled: true
+    prefix: /spring-boot-aws
+    name: cloud-parameter-store
+    profileSeparator: _
+```
+
+* ```enabled``` 
+  * 파라미터 스토어 설정 ON
+* ```prefix```
+  * 파라미터 스토어의 Key 값 가장 첫번째 구분용
+  * ```/aaa/bbb/ccc``` 와 같은 구조에서 ```/aaa```를 담당 
+* ```name```
+  * Key의 두번째 구분용
+  * ```/aaa/bbb/ccc``` 와 같은 구조에서 ```/bbb```를 담당
+  * 바로 하단의 ```profileSeparator``` 와 함께 사용 가능
+* ```profileSeparator```
+  * 바로 위 name과 함께 사용될 **profile 구분자**
+  * ex: 파라미터 스토어의 Key가 ```/aaa/bbb_local/ccc``` 가 있다면, ```profileSeparator```가 ```_``` 이며, 현재 Spring Boot 애플리케이션 profile이 ```local``` 일 경우 값을 호출할 수 있다. 
+* ```failFast```
+  * 기본값: ```true```
+  * 파라미터 스토어에서 값을 못 읽었을때 어떻게 할지를 결정하는 옵션
+  * true이면 애플리케이션 실행을 못하도록 한다. (즉, 파라미터 스토어 값을 못 읽어도 애플리케이션 실행을 원하면 ```false```로 둔다)
+
+파라미터 스토어 사용은 위와 같은 설정이면 끝납니다.  
+실제 설정값을 사용하는 클래스를 만들어보면
+
+```java
+@Getter
+@Setter
+@NoArgsConstructor
+@Configuration
+public class ParameterStoreProperties {
+
+    @Value("${encrypt.key}") // (1)
+    private String encryptKey;
+}
+```
+
+(1) ```@Value("${encrypt.key}")```
+
+* 파라미터 스토어의 ```/aaa/bbb/ccc``` 구조에서 ```/ccc```를 담당
+
+코드로 작성해야할 부분은 모두 끝났습니다.  
+그럼 이제 AWS 페이지로 이동해 파라미터를 생성해보겠습니다.
+
+### 1-2. 파라미터 스토어 설정
+
+먼저 AWS로 가서 파라미터 스토어에 파라미터를 생성해봅니다.  
+서비스 검색에서 System Manager를 검색합니다.  
+(파라미터 스토어가 System Manager 하위에 위치합니다.)
+
+![1](./images/1.png)
+
+사이드바의 Parameter Store -> 파라미터로 이동합니다.
+
+![2](./images/2.png)
+
+파라미터 생성 버튼을 클릭 하신뒤 아래와 같이 각 항목을 입력하시면 되는데요.
+
+![3](./images/3.png)
+
+* 이름
+  * 이름은 다음 규칙을 따라갑니다.
+  * ```{prefix}/{name}{profileSeparator}{profile}/parameter.key```
+  * 위 캡쳐로 본다면 prefix: ```/spring-boot-aws```, name: ```cloud-parameter-store```, parameter.key: ```encrypt.key```가 됩니다.
+
+여기서 만약 
+
+![8](./images/8.png)
+
+* 유형
+  * 보안 문자열: 파라미터 값이 암호화 되어 관리 됩니다.
+* 값
+  * 파라미터로 관리되길 원하는 값을 등록합니다.
+
+![4](./images/4.png)
+
+![5](./images/5.png)
+
+![6](./images/6.png)
+
+![7](./images/7.png)
+
+
+
+## 2. 동적 파라미터?
 
 
 동적 파라미터로 사용하는게 아니라, **처음 부트 실행시에만 한번 불러오는 구조**

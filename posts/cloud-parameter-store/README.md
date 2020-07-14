@@ -131,8 +131,7 @@ public class ParameterStoreProperties {
 
 ### 1-2. 파라미터 스토어 설정
 
-먼저 AWS로 가서 파라미터 스토어에 파라미터를 생성해봅니다.  
-서비스 검색에서 System Manager를 검색합니다.  
+AWS 서비스 검색에서 System Manager를 검색합니다.  
 (파라미터 스토어가 System Manager 하위에 위치합니다.)
 
 ![1](./images/1.png)
@@ -149,26 +148,61 @@ public class ParameterStoreProperties {
   * 이름은 다음 규칙을 따라갑니다.
   * ```{prefix}/{name}{profileSeparator}{profile}/parameter.key```
   * 위 캡쳐로 본다면 prefix: ```/spring-boot-aws```, name: ```cloud-parameter-store```, parameter.key: ```encrypt.key```가 됩니다.
-
-여기서 만약 
-
-![8](./images/8.png)
-
 * 유형
   * 보안 문자열: 파라미터 값이 암호화 되어 관리 됩니다.
 * 값
   * 파라미터로 관리되길 원하는 값을 등록합니다.
 
-![4](./images/4.png)
-
-![5](./images/5.png)
-
-![6](./images/6.png)
+여기서 만약 profile (```real```) 항목까지 포함해서 생성한다면 다음과 같이 됩니다.
 
 ![7](./images/7.png)
 
+기본값/local/real이 모두 포함된다면 아래와 같이 됩니다.
+
+![8](./images/8.png)
+
+name에 해당하는 ```cloud-parameter-store``` 뒤에 profileSeparator인 ```_``` (1-1에서 지정한 bootstrap.yml 참고) 를 두고, profile (```local, real```) 을 추가로 붙입니다.  
+  
+이렇게 할 경우 Spring Boot profile과 파라미터 스토어의 관계는 다음과 같이 됩니다.
+
+* active profile이 없을 경우 ```cloud-parameter-store```
+* active profile이 local일 경우 ```cloud-parameter-store_local```
+* active profile이 real일 경우 ```cloud-parameter-store_real```
+
+현재 본인 프로젝트의 profile에 맞춰 이름을 생성합니다.  
+  
+제일 하단에 있는 값이 바로 위 이름에 맞춰 호출될 값이 됩니다.  
+저는 테스트용도로 ```jojoldu```로 채웠습니다.
+
+![4](./images/4.png)
+
+생성이 되셨다면 아래와 같이 확인해볼 수 있습니다.
+
+![5](./images/5.png)
+
+유형을 보안 문자열로 했기 때문에 **값**이 마스킹되어있는 것을 확인할 수 있습니다.
+
+![6](./images/6.png)
 
 
+### 1-3. 테스트
+
+```java
+@ExtendWith(SpringExtension.class)
+@SpringBootTest
+public class ParameterStorePropertiesTest {
+
+    @Autowired
+    private ParameterStoreProperties properties;
+
+    @Test
+    void local_파라미터를_가져온다() throws Exception {
+        assertThat(properties.getEncryptKey()).isEqualTo("jojoldu_local");
+    }
+}
+```
+
+![test](./images/test.png)
 ## 2. 동적 파라미터?
 
 

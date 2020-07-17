@@ -314,3 +314,14 @@ public class ParameterStoreController {
 **변경된 값이 반영되지 않는 것**을 확인할 수 있습니다.  
   
 그래서 혹시나 동적 파라미터가 필요하다면 Spring Cloud Config 혹은 DB에 적재해서 사용하시는 방법을 고민하시는게 좋을것 같습니다.
+
+## 4. 주의사항
+
+
+```bash
+LOG_PATH_IS_UNDEFINED/
+```
+
+![logging1](./images/logging1.png)
+
+![logging2](./images/logging2.png)

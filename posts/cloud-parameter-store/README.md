@@ -317,11 +317,17 @@ public class ParameterStoreController {
 
 ## 4. 주의사항
 
+만약 위 설정을 마친뒤 배포를 진행했을때 아래와 같이 **로그 설정 관련 오류**가 발생한다면 아래 설정을 참고해 고치면 된다.
 
 ```bash
 LOG_PATH_IS_UNDEFINED/
 ```
 
+아마도 본인 프로젝트의 로그 설정이 아래와 같이 ```${LOG_PATH}``` 로 되어있을 것이다.  
+이 설정은 application.yml (혹은 application.properties) 에 등록된 ```logging.path``` 를 변수로 가져오는 것을 의미하는데, 이게 spring-cloud-starter-aws-parameter-store-config 의존성이 들어가면 제대로 사용되지 못한다.
+
 ![logging1](./images/logging1.png)
+
+그래서 위 로깅 설정 (```logging.path```) 을 application.yml에서 **bootstrap.yml**로 옮기면 정상 작동하게 된다.
 
 ![logging2](./images/logging2.png)
